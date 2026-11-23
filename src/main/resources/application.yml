@@ -1,0 +1,45 @@
+spring:
+  application:
+    name: pg-control-plane
+  datasource:
+    url: ${PGCP_DB_URL:jdbc:postgresql://localhost:5432/pgcp}
+    username: ${PGCP_DB_USER:pgcp}
+    password: ${PGCP_DB_PASSWORD:pgcp}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+  flyway:
+    enabled: true
+  jackson:
+    default-property-inclusion: non_null
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  metrics:
+    tags:
+      application: pg-control-plane
+
+logging:
+  pattern:
+    # key=value MDC fields so log shippers can index tenant and instance without parsing free text
+    level: "%5p tenant=%X{tenantId:-} instance=%X{instanceId:-} req=%X{requestId:-}"
+
+pgcp:
+  quota:
+    default-max-instances: 5
+  worker:
+    batch-size: 10
+    poll-interval-ms: 1000
+    lease-seconds: 60
+    max-attempts: 5
+    base-backoff-ms: 2000
+    max-backoff-ms: 300000
+    skip-locked: true
+  reconciler:
+    interval-ms: 30000
+  in-memory:
+    delay-ms: 200

@@ -1,0 +1,20 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:pgcp;MODE=PostgreSQL;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+pgcp:
+  scheduling:
+    enabled: false
+  quota:
+    default-max-instances: 2
+  worker:
+    skip-locked: false
+    max-attempts: 3
+    base-backoff-ms: 1000
+    max-backoff-ms: 8000
+    lease-seconds: 30
+  in-memory:
+    delay-ms: 0
