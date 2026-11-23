@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: pg-control-plane
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pg-control-plane
+  namespace: pg-control-plane
+---
+# Cluster-wide because the control plane creates one namespace per tenant.
+# Scope is limited to the verbs and resources the KubernetesProvisioner uses.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: pg-control-plane-tenant-manager
+rules:
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["get", "list", "create"]
+  - apiGroups: [""]
+    resources: ["secrets", "services", "persistentvolumeclaims"]
+    verbs: ["get", "list", "create", "update", "delete", "deletecollection"]
+  - apiGroups: ["apps"]
+    resources: ["statefulsets"]
+    verbs: ["get", "list", "create", "update", "delete"]
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["get", "list", "create", "delete", "deletecollection"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: pg-control-plane-tenant-manager
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: pg-control-plane-tenant-manager
+subjects:
+  - kind: ServiceAccount
+    name: pg-control-plane
+    namespace: pg-control-plane

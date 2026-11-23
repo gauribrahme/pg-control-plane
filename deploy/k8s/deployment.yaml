@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pg-control-plane
+  namespace: pg-control-plane
+spec:
+  replicas: 2   # safe: workers claim with SKIP LOCKED, so replicas never double-process an item
+  selector:
+    matchLabels:
+      app: pg-control-plane
+  template:
+    metadata:
+      labels:
+        app: pg-control-plane
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /actuator/prometheus
+        prometheus.io/port: "8080"
+    spec:
+      serviceAccountName: pg-control-plane
+      containers:
+        - name: app
+          image: pg-control-plane:latest   # replace with your registry path (for example OCIR)
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: k8s
+            - name: PGCP_DB_URL
+              value: jdbc:postgresql://metadata-db.pg-control-plane.svc:5432/pgcp
+            - name: PGCP_DB_USER
+              valueFrom:
+                secretKeyRef: {name: pgcp-db, key: username}
+            - name: PGCP_DB_PASSWORD
+              valueFrom:
+                secretKeyRef: {name: pgcp-db, key: password}
+          readinessProbe:
+            httpGet: {path: /actuator/health, port: 8080}
+            initialDelaySeconds: 20
+          livenessProbe:
+            httpGet: {path: /actuator/health, port: 8080}
+            initialDelaySeconds: 40
+          resources:
+            requests: {cpu: 250m, memory: 512Mi}
+            limits: {memory: 1Gi}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pg-control-plane
+  namespace: pg-control-plane
+spec:
+  selector:
+    app: pg-control-plane
+  ports:
+    - port: 80
+      targetPort: 8080

@@ -1,0 +1,40 @@
+{
+  "title": "PG Control Plane",
+  "uid": "pgcp-overview",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "time": {"from": "now-30m", "to": "now"},
+  "panels": [
+    {
+      "id": 1, "type": "timeseries", "title": "Instances by state",
+      "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8},
+      "datasource": {"type": "prometheus", "uid": "prom"},
+      "targets": [{"expr": "sum by (state) (pgcp_instances)", "legendFormat": "{{state}}"}]
+    },
+    {
+      "id": 2, "type": "timeseries", "title": "Provisioning duration p95 (s)",
+      "gridPos": {"x": 12, "y": 0, "w": 12, "h": 8},
+      "datasource": {"type": "prometheus", "uid": "prom"},
+      "targets": [{"expr": "histogram_quantile(0.95, sum by (le) (rate(pgcp_provisioning_duration_seconds_bucket[5m])))", "legendFormat": "p95"}]
+    },
+    {
+      "id": 3, "type": "timeseries", "title": "Workflow failures per minute",
+      "gridPos": {"x": 0, "y": 8, "w": 12, "h": 8},
+      "datasource": {"type": "prometheus", "uid": "prom"},
+      "targets": [{"expr": "sum by (type, permanent) (rate(pgcp_workflow_failures_total[5m])) * 60", "legendFormat": "{{type}} permanent={{permanent}}"}]
+    },
+    {
+      "id": 4, "type": "timeseries", "title": "Drift detected (reconciler)",
+      "gridPos": {"x": 12, "y": 8, "w": 12, "h": 8},
+      "datasource": {"type": "prometheus", "uid": "prom"},
+      "targets": [{"expr": "sum by (kind) (increase(pgcp_reconciler_drift_total[10m]))", "legendFormat": "{{kind}}"}]
+    },
+    {
+      "id": 5, "type": "timeseries", "title": "HTTP requests by status",
+      "gridPos": {"x": 0, "y": 16, "w": 24, "h": 8},
+      "datasource": {"type": "prometheus", "uid": "prom"},
+      "targets": [{"expr": "sum by (status) (rate(http_server_requests_seconds_count[1m]))", "legendFormat": "{{status}}"}]
+    }
+  ]
+}

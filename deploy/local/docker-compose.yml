@@ -1,0 +1,40 @@
+# Run from repo root:  docker compose -f deploy/local/docker-compose.yml up --build
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: pgcp
+      POSTGRES_USER: pgcp
+      POSTGRES_PASSWORD: pgcp
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pgcp"]
+      interval: 5s
+      retries: 10
+  app:
+    build:
+      context: ../..
+    environment:
+      PGCP_DB_URL: jdbc:postgresql://postgres:5432/pgcp
+      PGCP_DB_USER: pgcp
+      PGCP_DB_PASSWORD: pgcp
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+  grafana:
+    image: grafana/grafana:11.2.0
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3000:3000"
