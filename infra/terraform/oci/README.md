@@ -24,8 +24,9 @@ IAM user, export it as `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY`, copy `back
 `backend.hcl`, then `terraform init -backend-config=backend.hcl`.
 
 ## Locking
-The S3 backend's native lock file (`use_lockfile`, Terraform 1.10+) or a DynamoDB table does not exist on OCI.
-Be honest about that: with this backend, concurrent applies are not reliably prevented. Options are the
+The S3 backend normally locks through a DynamoDB table or (Terraform 1.10+) a lock file written with
+conditional writes. Neither is available against OCI's S3-compatible API as far as this draft knows, so
+with this backend concurrent applies are not reliably prevented. Verify against current docs. Options are the
 native OCI Object Storage backend in newer Terraform releases, Terraform Cloud or OCI Resource Manager
 (which locks stacks), or serialising applies through a single CI job with a concurrency group.
 
