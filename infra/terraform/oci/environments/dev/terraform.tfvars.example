@@ -1,0 +1,3 @@
+tenancy_ocid   = "ocid1.tenancy.oc1..example"
+compartment_id = "ocid1.compartment.oc1..example"
+node_image_id  = "ocid1.image.oc1.ap-mumbai-1.example"
